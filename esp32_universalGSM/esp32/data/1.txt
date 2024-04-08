@@ -1,0 +1,12 @@
+mqtt_id="Test_esp32_sim868";
+user="poul";
+password="1808";
+gsm="megafon";
+APN="internet";
+user_gsm="gdata";
+pwd="gdata";
+object="fix";
+Lat="46565";
+Lon="66546";
+type="datakom";
+typeGSM="SIM";

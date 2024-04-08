@@ -1,0 +1,182 @@
+<html>
+	<head>
+		<title>DGU-METER Device</title>
+		<script src="1.txt" type="text/javascript"></script>
+		<meta name="viwport" charset="utf-8" content="width=device-width, initial-scale=1">
+		<style>
+			body {
+                /*zoom: 300%;*/
+				/*text-align: center;*/
+				height: 100%;
+				margin: 0;
+				border: 1px solid black;
+				background: black;
+			}
+
+			input[type="button"] { position: relative; top: 50%; margin-top: -30px;}
+
+			ul{
+                color: white;
+                font-size: 120%;
+
+			}
+			H1 {
+                color: white;
+                margin: 0;
+                text-align: center;
+			}
+			h2 {
+                color: white;
+                margin: 0;
+                text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+		<H1>Настройки</H1 >
+		<h2>ID Устройства</h2>
+		<script>document.write(mqtt_id);</script>
+        <form action="/input-id" method="POST">
+            <ul>
+                <li>
+                    <label for="id">MQTT ID:</label>
+                    <input type="text" id="mqtt_id" name="mqtt_id" >
+										<script>document.write(mqtt_id);</script>
+                </li>
+                <li>
+                    <label for="id">    USER:</label>
+                    <input type="text" id="user" name="user" >
+										<script>document.write(user);</script>
+
+                </li>
+                <li>
+                    <label for="password">Password:</label>
+                    <input type="text" id="password" name="password">
+										<script>document.write(password);</script>
+                </li>
+                </li>
+                    <input type="submit" value="Отправить">
+                </li>
+            </ul>
+        </form>
+
+				<h2>Выбор оператора</h2>
+
+				<form action="/input_gsm" method="post">
+            <ul>
+                <li>
+                  <select size="1" id="gsm" name="gsm">
+                    <option selected isabled>Выберите оператора</option>
+										<option value="megafon" >Мегафон</option>
+										<option value="beeline" >Биллайн</option>
+										<option value="mts" >МТС</option>
+										<option value="tele2" >ТЕЛЕ2</option>
+										<option value="other" >Другой</option>
+									</select>
+									<script>document.write(gsm);</script>
+								</li>
+								<li>
+									<input type="submit" value="Отправить">
+							</li>
+						</ul>
+				</form>
+				<form action="/input_gsm_handle" method="post">
+            <ul>
+                <li>
+                  	Введите данные вручную
+								</li>
+                <li>
+                    <label for="APN">APN:</label>
+                    <input type="text" id="APN" name="APN">
+										<script>document.write(APN);</script>
+                </li>
+								<li>
+                    <label for="user_gsm">User:</label>
+                    <input type="text" id="user_gsm" name="user_gsm">
+										<script>document.write(user_gsm);</script>
+                </li>
+								<li>
+                    <label for="pwd">Password:</label>
+                    <input type="text" id="pwd" name="pwd">
+										<script>document.write(pwd);</script>
+                </li>
+								<li>
+										<input type="submit" value="Отправить">
+							</li>
+						</ul>
+				</form>
+
+        <h2>Местоположение</h2>
+
+        <form action="/input-locate" method="POST">
+            <ul>
+							<li>
+								<label for="object">Объект:</label>
+								<select size="1" id="object" name="object">
+									<option disabled>Выберите тип</option>
+									<option value="fix" >Стационарный</option>
+									<option value="mob" >Мобильный</option>
+								</select>
+								<script>document.write(object);</script>
+							</li>
+						</li>
+								<input type="submit" value="Отправить">
+						</li>
+                <li>
+                    <label for="Lat">Latitude:</label>
+                    <input type="text" id="Lat" name="Lat" >
+										<script>document.write(Lat);</script>
+                </li>
+                <li>
+                    <label for="Lon">Longitude:</label>
+                    <input type="text" id="Lon" name="Lon">
+										<script>document.write(Lon);</script>
+                </li>
+                </li>
+                    <input type="submit" value="Отправить">
+                </li>
+            </ul>
+        </form>
+
+        <h2>Тип устройства</h2>
+
+        <form action="/input-type" method="post">
+            <ul>
+                <li>
+                  <select size="1" id="type" name="type">
+                    <option disabled>Выберите тип</option>
+										<option value="smartgen" >smartgen</option>
+										<option value="datakom" >datakom</option>
+									</select>
+									<script>document.write(type);</script>
+								</li>
+								<li>
+									<input type="submit" value="Отправить">
+							</li>
+						</ul>
+				</form>
+
+				<h2>Тип GSM модуля </h2>
+
+				<form action="/input-typeGSM" method="post">
+            <ul>
+								<li>
+                  <select size="1" id="typeGSM" name="typeGSM">
+                    <option disabled>Выберите тип GSM</option>
+										<option value="SIM800" >SIM800</option>
+										<option value="SIM868_GNSS" >SIM868_GNSS</option>
+										<option value="SIM868" >SIM868</option>
+										<option value="A7670_LTE_GNSS" >A7670_LTE_GNSS</option>
+										<option value="A7670_LTE" >A7670_LTE</option>
+									</select>
+									<script>document.write(typeGSM);</script>
+								</li>
+								<li>
+									<input type="submit" value="Отправить">
+							</li>
+						</ul>
+				</form>
+
+	</body>
+
+</html>
