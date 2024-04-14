@@ -61,7 +61,7 @@ TaskHandle_t BallansHandle;
 bool connect_mqtt = false;
 
 SemaphoreHandle_t Reconnect_Sem_task = xSemaphoreCreateBinary();
-SemaphoreHandle_t fackt = xSemaphoreCreateBinary();
+// SemaphoreHandle_t fackt = xSemaphoreCreateBinary();
 SemaphoreHandle_t mutex_v = xSemaphoreCreateMutex();
 SemaphoreHandle_t mutex_collect = xSemaphoreCreateMutex();
 // флаг который запускает процесс проверки команды и ее выпонения
@@ -74,11 +74,13 @@ void read_settings();
 // ============================= SETUP =================================
 void setup() {
 
-{
+{ // Serial begin
   Serial.begin(115200);
   Serial.println("Hello World");
   Serial.println("Привет МИР!");
+}
 
+{ // Display begin
   display.begin(SH1106_SWITCHCAPVCC, 0x3C);
   display.display();
   display.clearDisplay();
@@ -93,7 +95,10 @@ void setup() {
   // display.setTextColor(BLACK, WHITE); // 'inverted' text
   // display.println(3.141592);
   display.display();
-    //================ WiFI ====================
+}
+
+
+{ // WiFI & File system begin
     Serial.println("Start 1-WIFI");
     WIFIinit();
     if (SPIFFS.begin()) {
@@ -112,43 +117,34 @@ void setup() {
     read_settings();
 
     HTTP_on();
-    // HTTP.begin();                                          // Инициализируем Web-сервер
-    //
-    // HTTP.on("/input-id", input_id);
-    // HTTP.on("/input_gsm", input_gsm);
-    // HTTP.on("/input_gsm_handle", input_gsm_handle);
-    // HTTP.on("/input-locate", input_locate);
-    // HTTP.on("/input-type", input_type);
-    //
-    // HTTP.onNotFound([](){                                 // Описываем действия при событии "Не найдено"
-    // if(!handleFileRead(HTTP.uri()))                       // Если функция handleFileRead (описана ниже) возвращает значение false в ответ на поиск файла в файловой системе
-    //     HTTP.send(404, "text/plain", "Not Found");       // возвращаем на запрос текстовое сообщение "File isn't found" с кодом 404 (не найдено)
-    // });
+  }
 
-    // HTTP.handleClient();                                // Обработчик HTTP-событий (отлавливает HTTP-запросы к устройству и обрабатывает их в соответствии с выше описанным алгоритмом)
+if (strstr(GSM.object_station.reset_GSM, "1") != NULL) {
+  GSM.flag_all_GSM_init = true;
+  reconfig("/1.txt", 12, "0");
 
-    // =========================================
-
-
+}
     pinMode(2, OUTPUT);
     digitalWrite(2, LOW);
-    GSM_uart.begin(57600, SERIAL_8N1, 16, 17);
+
+{ // Serial for GSM & Modbus begin
+    GSM_uart.begin(115200, SERIAL_8N1, 16, 17);
     // GSM_uart.begin(19200, SERIAL_8N1, 16, 17);
     DGU_uart.begin(9600, SERIAL_8N1, 14, 12);
     // DGU_uart.begin(115200, SERIAL_8N1, 14, 12);
     // DGU_uart.begin(9600, SERIAL_8N1, 25, 26);
 
+    GSM_uart.setTimeout(200);
+    DGU_uart.setTimeout(300);
 
-    CheckSpiffs();
-    OpenFileRead("/test1.txt");
-    createFile("/history.txt");
+}
+
 
 // ++++++++++++++++++++++++++++++++++++++++++
-}
+
 // xTaskCreatePinnedToCore(Task_Modebus, "Task_Modebus", 10000, NULL, 1, NULL,  1);
 
 {
-  // GSM.AT_as("AT+IPR=0","OK");
   // GSM_uart.end();
   // GSM_uart.begin(115200, SERIAL_8N1, 16, 17);
   // GSM.waitingUart(2000);
@@ -161,71 +157,67 @@ void setup() {
   // GSM.AT_as("AT+IPR?","OK");
 }
 // ++++++++++++++++++++++++++++++++++++++++++
-  GSM_uart.setTimeout(300);
-  DGU_uart.setTimeout(300);
+{ // Base task begin
     // Запуск задачи которая постоянно слушает порт связи GSM, парсит
     xTaskCreatePinnedToCore(HTTP_client_frtos, "HTTP_client_frtos", 10000, NULL, 1, NULL,  1);
     xTaskCreatePinnedToCore(listen_Uart, "listen_Uart", 10000, NULL, 4, NULL,  0);
     xTaskCreatePinnedToCore(check_ciprxget, "check_ciprxget", 10000, NULL, 4, NULL,  0);
     xTaskCreatePinnedToCore(CIPRXGET_handler_task, "CIPRXGET_handler_task", 10000, NULL, 4, NULL,  0);
-    xTaskCreatePinnedToCore(_Reconnect, "Reconnect", 10000, NULL, 4, NULL,  0);
-    // xTaskCreatePinnedToCore(_Ping_Req, "Ping_Req", 10000, NULL, 1, &PingReqHandle,  0);
-
-    // ***** Временно отключаю block 1
     xTaskCreatePinnedToCore(GetModbusAll_frtos, "GetModbusAll_frtos", 10000, NULL, 4, NULL,  0);
     // xTaskCreatePinnedToCore(CollectDataTask, "CollectDataTask", 10000, NULL, 1, NULL,  0);
-    // ****** block 1
-    // запуск задачи которая постоянно ждет комманды от сервера по флагу
-
     xTaskCreatePinnedToCore(BlinkConnect, "BlinkConnect", 10000, NULL, 4, NULL,  0);
-
     xTaskCreatePinnedToCore(display_info, "display_info", 10000, NULL, 4, NULL,  0);
-
-    xTaskCreatePinnedToCore(BallansTask, "BallansTask", 10000, NULL, 4, &BallansHandle,  0);
-
-    GSM.AT_as("AT+CPIN?", "READY");
-
-    GSM.Module_init();
-
-
+    // xTaskCreatePinnedToCore(BallansTask, "BallansTask", 10000, NULL, 4, &BallansHandle,  0);
+}
     // GSM.GNSS_powerOn();
     // GSM.AT_as("AT+CPIN?");
-    GSM.AT_as("AT+CSQ");
+    // GSM.AT_as("AT&FZ");
 
-
-
-
-    // GSM.Ballans(SUM);
-    // GSM.Ballans(PDU);
+{ // Init GSM & connect client to MQTT server
     bool flag_tcpConnect = false;
-    if (GSM.GPRS()) {
-      if (GSM.TCP_connect()) flag_tcpConnect = true;
-      else {GSM.AT_as("AT+CFUN=1,1");
-            // xSemaphoreGive(GSM.Reconnect_Sem);
-            GSM.Reconnect();
-            // flag_tcpConnect = true;
-      }
+    while (!connect_mqtt){
+      GSM.AT_as("AT+CPIN?", "READY");
+      GSM.AT_as("AT+CSQ");
+      GSM.Module_init();
+        if (GSM.GPRS()) {
+          if (GSM.TCP_connect()) GSM.TCP_connect_flag = true;
+          else {GSM.AT_as("AT+CFUN=1,1");
+                // xSemaphoreGive(GSM.Reconnect_Sem);
+                GSM.Reconnect();
+                // flag_tcpConnect = true;
+          }
+        }
+
+
+        // if (flag_tcpConnect){
+        if (GSM.TCP_connect_flag){
+          if(!GSM.MQTT_pingreq()){
+            if (GSM.MQTT_connect()) {
+              connect_mqtt = true;
+              Serial.print("Yes connect in setup - "), Serial.println(connect_mqtt);
+            }
+            // else {GSM.AT_as("AT+CIPSHUT", "SHUT OK");}
+          }
+          else{
+            connect_mqtt = true;
+            GSM._blink_connect = true;
+            Serial.print("Yes alrady connect in setup by PINGreq- "), Serial.println(connect_mqtt);
+          }
+        }
     }
+}
 
-
-    // if (flag_tcpConnect){
-    if (GSM.TCP_connect_flag){
-        if (GSM.MQTT_connect()) {
-          connect_mqtt = true;
-          Serial.print("Yes connect in setup - "), Serial.println(connect_mqtt);
-
+{ // Begin other task, if client connected to server
+          xTaskCreatePinnedToCore(_Reconnect, "Reconnect", 10000, NULL, 4, NULL,  0);
           GetModbusAll();
-          GSM.MQTT_pingreq();
+          // GSM.MQTT_pingreq();
           GSM.MQTT_publish("station/controller/all_param_message", DataAll);
           xTaskCreatePinnedToCore(Waiting_Command, "Waiting_Command", 10000, NULL, 4, NULL,  0);
           xTaskCreatePinnedToCore(SafeConnect_frtos, "SafeConnect_frtos", 10000, NULL, 4, NULL,  0);
           xTaskCreatePinnedToCore(Publish_frtos, "Publish_frtos", 10000, NULL, 4, NULL,  0);
           xTaskCreatePinnedToCore(get_serviceInfo, "get_serviceInfo", 10000, NULL, 4, NULL,  0);
+}
 
-        } else{
-          // xSemaphoreGive(GSM.Reconnect_Sem);
-        }
-    }
 
 
     // char BuferUartTask[1000] = "";
@@ -238,9 +230,12 @@ void setup() {
     // xTaskCreatePinnedToCore(listen_GNSS, "listen_GNSS", 10000, NULL, 4, NULL,  1);
 
 
-}
-// ===================================================================================
 
+}
+// =====================================================================
+
+
+ // task function
 void HTTP_client_frtos( void * parameter) {
   for(;;) {//infinite loop
     HTTP.handleClient();
@@ -264,7 +259,7 @@ void get_serviceInfo( void * parameter) {
     GSM.Get_CSQ();
     GSM.Get_TempModuleGSM();
     GSM.Get_OperInfo();
-    GSM.Ballans_all(GSM.MEGAFON);
+    // GSM.Ballans_all(GSM.MEGAFON);
     xSemaphoreGive(mutex_v);
     vTaskDelay( 240000 );
   }
@@ -562,7 +557,7 @@ void Publish_frtos( void * parameter){
     // if( !GSM.MQTT_publishTimer("station/controller/all_param_message", DataAll, 30)) {
     if( !GSM.MQTT_publish("station/controller/all_param_message", DataAll)) {
       Serial.println(" No Publish and flag of Reconnect = true");
-      GSM.Reconnect_Task_flag = true;
+      // GSM.Reconnect_Task_flag = true;
     }
 
     xSemaphoreGive(mutex_v);
@@ -570,6 +565,8 @@ void Publish_frtos( void * parameter){
     vTaskDelay(60000);
   }
 }
+
+
 
 // GPS.start(60000);
 
@@ -701,6 +698,10 @@ void read_settings(){
     clear_char(line1);
     Serial.print("GSM.object_station.type_GSM = "), Serial.println(GSM.object_station.type_GSM);
 
+    f.readBytesUntil('\n', line1, 100);
+    save_parameter(GSM.object_station.reset_GSM, line1);
+    clear_char(line1);
+    Serial.print("GSM.object_station.reset_GSM = "), Serial.println(GSM.object_station.reset_GSM);
 
 
   Serial.println("+++++++++++++++++ Read settings stop +++++++++++++++++++");

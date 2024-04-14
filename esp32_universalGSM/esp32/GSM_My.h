@@ -62,7 +62,10 @@ class GSM_Un {
       char status_locate[20];
       char type_controller[20];
       char type_GSM[20];
+      char reset_GSM[20];
     } object_station;
+
+    bool flag_all_GSM_init = false;
 
     // #include "util/variable.h"
     // typedef struct {

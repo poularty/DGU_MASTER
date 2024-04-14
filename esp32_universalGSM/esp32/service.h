@@ -308,25 +308,29 @@ bool GSM_Un::GPRS(){
   // if (_flag_All_init){
     _Debug -> println(">>>>>>>>>> Settings GPRS param to module <<<<<<<<<<<<");
 
-  AT_as("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"", "OK");
+  // if (flag_all_GSM_init){
+    if (strstr(object_station.type_GSM, "SIM800") == NULL){
+        AT_as("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"", "OK");
 
-  clear_char(result);
-  strcat(result, "AT+SAPBR=3,1, \"APN\",");
-  strcat(result, oper_put.APN);
-  _Debug -> print("result APN = "), _Debug -> println(result);
-  AT_as(result);
+        clear_char(result);
+        strcat(result, "AT+SAPBR=3,1, \"APN\",");
+        strcat(result, oper_put.APN);
+        _Debug -> print("result APN = "), _Debug -> println(result);
+        AT_as(result);
 
-  clear_char(result);
-  strcat(result, "AT+SAPBR=3,1, \"USER\",");
-  strcat(result, oper_put.user_gsm);
-  _Debug -> print("result USER = "), _Debug -> println(result);
-  AT_as(result);
+        clear_char(result);
+        strcat(result, "AT+SAPBR=3,1, \"USER\",");
+        strcat(result, oper_put.user_gsm);
+        _Debug -> print("result USER = "), _Debug -> println(result);
+        AT_as(result);
 
-  clear_char(result);
-  strcat(result, "AT+SAPBR=3,1, \"PWD\",");
-  strcat(result, oper_put.pwd);
-  _Debug -> print("result PWD = "), _Debug -> println(result);
-  AT_as(result);
+        clear_char(result);
+        strcat(result, "AT+SAPBR=3,1, \"PWD\",");
+        strcat(result, oper_put.pwd);
+        _Debug -> print("result PWD = "), _Debug -> println(result);
+        AT_as(result);
+    // }
+  }
 
   // AT_as( 3, "AT+SAPBR=3,1, \"APN\", \"next\"");
   // AT_as( 3, "AT+SAPBR=3,1, \"USER\",\"", _OPER_OUT -> USER, "\"");
@@ -370,11 +374,14 @@ bool GSM_Un::Module_init(){
   _Debug -> println("Module init start");
   // AT_as("AT+CIPSRIP=3");
   // if (!digitalRead(_Pin_All_init)){
-  if (1){
+  // if (flag_all_GSM_init){
+  // if (1){
     _Debug -> println(">>>>>>>>>> Settings AT param to module <<<<<<<<<<<<");
 
     waitingUart(10000);
     // AT("AT");
+
+    AT_as("AT&FZ");
     AT_as("AT+CFUN=1,1");
     waitingUart(10000);
     AT_as("ATE0", "OK");
@@ -384,8 +391,9 @@ bool GSM_Un::Module_init(){
     AT_as("AT+CSCS=\"HEX\"");
     AT_as("AT+CSCS?");
     Ballans(SUM);
-  }
+  // }
   waitingUart(10000);
+  // AT_as("ATE0", "OK");
   _Debug -> println("Module init stop true");
 
   return true;
@@ -413,6 +421,7 @@ bool GSM_Un::TCP_connect(){
   TCP_connect_flag = false;
   char result[500] = "";
   // if (_flag_All_init){
+  // if (flag_all_GSM_init){
     _Debug -> println(">>>>>>>>>> Settings TCP/IP param to module <<<<<<<<<<<<");
 
     AT_as("AT+CIPSTATUS");
@@ -442,6 +451,16 @@ bool GSM_Un::TCP_connect(){
 
 
 // }
+// else{
+//   AT_as("AT+CIPSHUT", "SHUT OK");                          // зброс всех TCP соединений
+//   delay(500);
+//   AT_as("AT+CIPSTATUS");
+//   AT_as("AT+CSTT=\"internet\"");
+//   AT_as("AT+CIPSTATUS");
+//   AT_as("AT+CIICR");
+//   AT_as("AT+CIPSTATUS");
+//   AT_as("AT+CIFSR");
+// }
 
 // AT_as("AT+CIPSGTXT=0", "OK");
 
@@ -455,7 +474,7 @@ bool GSM_Un::TCP_connect(){
   // strcat(result, AT("AT+CIPSTART=\"TCP\",\"dev.rightech.io\", 1883", 3000));
   char line[200] = "AT+CIPSTART=\"TCP\",";
   strcat(line, "\"dev.rightech.io\",");
-  strcat(line, "1883");
+  strcat(line, "1884");
 
   strcat(result, AT_as(line, "ERROR", "CONNECT OK", "ALREADY CONNECT"));
   _Debug -> println(result);

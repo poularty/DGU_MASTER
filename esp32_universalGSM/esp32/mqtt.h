@@ -95,7 +95,7 @@ bool GSM_Un::MQTT_connect(){
   _data_start = false;
 
   time = millis();
-   while(!_mqttConnect_flag && ((millis() - time) < 10000)) {}
+   while(!_mqttConnect_flag && ((millis() - time) < 20000)) {}
    if (_mqttConnect_flag){
      _Debug -> println(" Yes Connect");
      SafeConnect.resetGo();
@@ -151,7 +151,7 @@ bool GSM_Un::MQTT_publish(char* topic, char* message){
      return true;
    }
    else {
-     // _Debug -> println(" Semaphore Reconnect_Sem Start in MQTT_publish");
+     _Debug -> println(" NOT publish");
      // xSemaphoreGive(Reconnect_Sem);
      return false;
    }
@@ -365,12 +365,15 @@ bool GSM_Un::MQTT_pingreq(){
   // _Debug -> print("result1 = "), _Debug -> println(result1);
   _data_start = false;
 
-  time = millis();
-   while(!_pingreq_flag && ((millis() - time) < 20000)) {}
-   if (_pingreq_flag){
-     _pingreq_flag = false;
-     return true;
-   }
+  if (strstr(result1, "SEND OK") != NULL){
+        time = millis();
+         while(!_pingreq_flag && ((millis() - time) < 5000)) {}
+         if (_pingreq_flag){
+           _pingreq_flag = false;
+           return true;
+         }
+  }
+
    _blink_connect = false;
    return false;
 

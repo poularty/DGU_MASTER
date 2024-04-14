@@ -22,6 +22,7 @@
  void input_locate();
  void input_type();
  void input_typeGSM();
+ void input_resetGSM();
 
  bool handleFileRead(String path);
 
@@ -39,6 +40,7 @@ void HTTP_on(){
   HTTP.on("/input-locate", input_locate);
   HTTP.on("/input-type", input_type);
   HTTP.on("/input-typeGSM", input_typeGSM);
+  HTTP.on("/input-resetGSM", input_resetGSM);
 
   HTTP.onNotFound([](){                                 // Описываем действия при событии "Не найдено"
   if(!handleFileRead(HTTP.uri()))                       // Если функция handleFileRead (описана ниже) возвращает значение false в ответ на поиск файла в файловой системе
@@ -192,7 +194,7 @@ void HTTP_on(){
    reconfig("/1.txt", 9, args_to_arr(HTTP.arg(2)));
 
    handleFileRead("/");
-   ESP.restart();
+   // ESP.restart();
  }
 
  void input_type() {
@@ -210,6 +212,15 @@ void HTTP_on(){
    reconfig("/1.txt", 11, args_to_arr(HTTP.arg(0)));
 
    handleFileRead("/");
+ }
+
+ void input_resetGSM() {
+   Serial.print(HTTP.argName(0)), Serial.print(" = "), Serial.println(HTTP.arg(0));
+
+   reconfig("/1.txt", 12, args_to_arr(HTTP.arg(0)));
+
+   handleFileRead(HTTP.uri());
+   ESP.restart();
  }
 
  String relay_switch() {                                                 // Функция переключения реле
